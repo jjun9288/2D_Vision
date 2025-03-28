@@ -15,7 +15,7 @@ class PatchEmbedding(nn.Module) :
         flat = self.flatten(patch)
         return flat.permute(0, 2, 1)
 
-h
+# Multi-Head Self Attention block
 class MSABlock(nn.Module) :
     def __init__(self, embedding_dim, head_num) :
         super().__init__()
@@ -29,7 +29,7 @@ class MSABlock(nn.Module) :
         attn, _ = self.multihead_attn(query=x, key=x, value=x)
         return attn
     
-
+# Multi Layer Perceptron block
 class MLPBlock(nn.Module) :
     def __init__(self, embedding_dim, MLP_size, dropout_rate=0.1) :
         super().__init__()
@@ -49,12 +49,12 @@ class MLPBlock(nn.Module) :
         x = self.mlp(x)
         return x
     
-
+# Transformer Encoder block
 class TransformerEncoderBlock(nn.Module) : 
     def __init__(self, embedding_dim, num_heads, MLP_size, dropout_rate=0.1) :
         super().__init__()
         # MSA block
-        self.msa_block = MSABlock(embedding_dim=embedding_dim, num_heads=num_heads)
+        self.msa_block = MSABlock(embedding_dim=embedding_dim, head_num=num_heads)
         # MLP block
         self.mlp_block = MLPBlock(embedding_dim=embedding_dim, MLP_size=MLP_size)
 
@@ -63,14 +63,14 @@ class TransformerEncoderBlock(nn.Module) :
         x = self.mlp_block(x) + x
         return x
 
-
+# Vision Transformer layer using the blocks above
 class ViT(nn.Module) :
     def __init__(self, class_num, img_size=224, patch_size=16, embedding_dim=768, MLP_size=3072, head_num=12) :
         super().__init__()
         # Patch embedding layer
         self.patch_embedding = PatchEmbedding(patch_size=patch_size, embedding_dim=embedding_dim)
         # Total number of patches
-        self.patch_num = (img_size * img_size) / patch_size**2
+        self.patch_num = int((img_size * img_size) / patch_size**2)
         # Class token (learnable)
         self.class_token = nn.Parameter(torch.randn(1, 1, embedding_dim), requires_grad=True)
         # Position embedding (learnable)
